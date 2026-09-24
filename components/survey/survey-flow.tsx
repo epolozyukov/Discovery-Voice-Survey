@@ -5,8 +5,7 @@ import { saveAnswerAction, submitAction } from "@/app/survey/[token]/actions";
 import { MAX_ANSWER_LENGTH } from "@/lib/config/limits";
 import { validateAnswerText, findMissingRequired } from "@/lib/domain/answers";
 import { VoiceAnswer } from "@/components/voice/voice-answer";
-import { Orb } from "@/components/voice/orb";
-import { Brand, Icon, PvShell } from "./pv-shell";
+import { Brand, Icon, PvSplit, RailTrack } from "./pv-shell";
 import { Confetti } from "./confetti";
 import type { ParticipantSession } from "@/lib/data/participant";
 import type { InputMethod } from "@/types";
@@ -109,6 +108,7 @@ export function SurveyFlow({ token, readOnly, session }: { token: string; readOn
     });
 
   const enter = dir === "fwd" ? "pv-enter-fwd" : "pv-enter-back";
+  const title = session.survey.title;
 
   const ModeToggle = (
     <div className="pv-toggle" role="group" aria-label="How would you like to answer?">
@@ -119,77 +119,115 @@ export function SurveyFlow({ token, readOnly, session }: { token: string; readOn
 
   /* ───────── Welcome ───────── */
   if (step === "welcome") {
+    const minutes = Math.max(2, Math.round(questions.length * 0.9));
     return (
-      <PvShell>
-        <div className="flex flex-col items-center gap-6 text-center">
-          <div className="pv-rise self-start"><Brand /></div>
-          <div className="pv-rise d1"><Orb size={150} /></div>
-          <div className="flex flex-col items-center gap-3">
-            <h1 className="pv-display pv-grad pv-rise d1 text-[clamp(38px,7vw,72px)]">{session.survey.title}</h1>
-            <p className="pv-muted pv-rise d2 text-[clamp(16px,1.9vw,20px)]">Welcome! Here’s what to expect before you start.</p>
-            {session.survey.description && (
-              <p className="pv-muted pv-rise d2 max-w-2xl whitespace-pre-wrap text-[clamp(15px,1.7vw,18px)] leading-relaxed">{session.survey.description}</p>
-            )}
+      <PvSplit
+        rail={
+          <>
+            <div className="pv-rise"><Brand onDark /></div>
+            <div className="flex flex-col gap-5">
+              <p className="pv-rail-eyebrow pv-rise d1">Pre-workshop questionnaire</p>
+              <h1 className="pv-rail-title pv-rise d1">{title}</h1>
+              {session.survey.description && <p className="pv-rail-desc pv-rise d2">{session.survey.description}</p>}
+              <div className="pv-rise d3 flex flex-wrap gap-2">
+                <span className="pv-rail-chip"><Icon name="sparkle" /> {questions.length} question{questions.length === 1 ? "" : "s"}</span>
+                <span className="pv-rail-chip">⏱ about {minutes} min</span>
+              </div>
+            </div>
+          </>
+        }
+      >
+        <div className="pv-rise flex flex-col gap-2">
+          <p className="pv-eyebrow">Before you start</p>
+          <h2 className="pv-display text-[clamp(30px,4vw,44px)]">Here’s how it works</h2>
+          <p className="pv-muted">Welcome! It only takes a few minutes.</p>
+        </div>
+
+        <ol className="pv-how pv-rise d2">
+          <li><span className="n">1</span><div><p className="font-bold">Read each question</p><p className="pv-muted text-[15px]">One at a time, in your own words. There are no wrong answers.</p></div></li>
+          <li><span className="n">2</span><div><p className="font-bold">Speak or type</p><p className="pv-muted text-[15px]">Talk into your microphone and your speech becomes text you can edit, or simply type.</p></div></li>
+          <li><span className="n">3</span><div><p className="font-bold">Review and submit</p><p className="pv-muted text-[15px]">Answers are saved as you go. Check everything before you send it.</p></div></li>
+        </ol>
+
+        <div className="pv-rise d3 flex flex-col gap-3">
+          <p className="font-bold">How would you like to answer?</p>
+          <div className="pv-modes" role="group" aria-label="How would you like to answer?">
+            <button type="button" className="pv-mode" aria-pressed={mode === "voice"} onClick={() => setMode("voice")}>
+              <span className="t"><Icon name="mic" /> Voice</span>
+              <span className="d">Speak your answers</span>
+            </button>
+            <button type="button" className="pv-mode" aria-pressed={mode === "type"} onClick={() => setMode("type")}>
+              <span className="t"><Icon name="keyboard" /> Type</span>
+              <span className="d">Write them out</span>
+            </button>
           </div>
         </div>
 
-        <div className="pv-steps pv-rise d3">
-          <div><div className="pv-step-n">1</div><p className="font-bold">Read each question</p><p className="pv-muted mt-1 text-[15px]">{questions.length} question{questions.length === 1 ? "" : "s"}, one at a time. Answer in your own words. There are no wrong answers.</p></div>
-          <div><div className="pv-step-n">2</div><p className="font-bold">Speak or type</p><p className="pv-muted mt-1 text-[15px]">Tap the microphone and talk, or just type. Your speech becomes text you can edit.</p></div>
-          <div><div className="pv-step-n">3</div><p className="font-bold">Review and submit</p><p className="pv-muted mt-1 text-[15px]">Your answers are saved as you go. Check everything before you send it.</p></div>
-        </div>
-
-        <div className="pv-rise d4 flex flex-col items-center gap-5">
-          {ModeToggle}
-          <button className="pv-btn pv-btn-primary px-12 text-lg" onClick={() => setStep(0)}>
+        <div className="pv-rise d4 flex flex-col gap-5">
+          <button className="pv-btn pv-btn-primary self-start px-10 text-lg" onClick={() => setStep(0)}>
             Start <Icon name="arrow" />
           </button>
+          <p className="pv-privacy">
+            <span className="mt-0.5 flex-none"><Icon name="lock" /></span>
+            <span>Your voice recording is turned into text and then discarded. Only the text of your answers is saved. The recording itself is never stored.</span>
+          </p>
         </div>
-
-        <p className="pv-privacy pv-rise d4">
-          <span className="mt-0.5 flex-none"><Icon name="lock" /></span>
-          <span>Your voice recording is turned into text and then discarded. Only the text of your answers is saved. The recording itself is never stored.</span>
-        </p>
-      </PvShell>
+      </PvSplit>
     );
   }
 
   /* ───────── Done ───────── */
   if (step === "done") {
     return (
-      <PvShell>
+      <PvSplit
+        rail={
+          <>
+            <Brand onDark />
+            <div className="flex flex-col gap-4">
+              <svg className="pv-check" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+                <circle cx="60" cy="60" r="54" stroke="#8fe0d5" strokeWidth="6" strokeLinecap="round" transform="rotate(-90 60 60)" />
+                <path d="M36 62l16 16 32-34" stroke="#fff" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <p className="pv-rail-eyebrow">Submitted</p>
+              <p className="pv-rail-title">{title}</p>
+            </div>
+          </>
+        }
+      >
         <Confetti />
-        <div className="flex flex-col items-center gap-6 text-center">
-          <svg className="pv-check" viewBox="0 0 120 120" fill="none" aria-hidden="true">
-            <circle cx="60" cy="60" r="54" stroke="url(#g)" strokeWidth="6" strokeLinecap="round" transform="rotate(-90 60 60)" />
-            <path d="M36 62l16 16 32-34" stroke="#2b6f70" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" />
-            <defs><linearGradient id="g" x1="0" y1="0" x2="120" y2="120"><stop stopColor="#2b6f70" /><stop offset="1" stopColor="#5fc9bd" /></linearGradient></defs>
-          </svg>
-          <h1 className="pv-display pv-grad pv-rise d2 text-[clamp(40px,8vw,84px)]">Thank you!</h1>
-          <p className="pv-rise d3 max-w-lg text-lg font-medium">Your responses have been submitted successfully.</p>
-          <p className="pv-muted pv-rise d4 max-w-lg">
-            The Discovery team will use your input to prepare for the upcoming workshop. You can now close this window.
-          </p>
-        </div>
-      </PvShell>
+        <h1 className="pv-display pv-grad pv-rise d1 text-[clamp(44px,7vw,84px)]">Thank you!</h1>
+        <p className="pv-rise d2 text-xl font-medium">Your responses have been submitted successfully.</p>
+        <p className="pv-muted pv-rise d3 max-w-lg text-lg">
+          The Discovery team will use your input to prepare for the upcoming workshop. You can now close this window.
+        </p>
+      </PvSplit>
     );
   }
 
   /* ───────── Review ───────── */
   if (step === "review") {
     return (
-      <PvShell wide>
-        <div className={`${enter} flex flex-col gap-8`}>
-          <div className="flex flex-col gap-3">
-            <Brand />
-            <h1 className="pv-display pv-grad text-[clamp(34px,5.5vw,60px)]">Review your answers</h1>
+      <PvSplit
+        orb="small"
+        rail={
+          <>
+            <Brand onDark />
+            <div className="pv-rail-desktop"><p className="pv-rail-eyebrow mb-4">Your progress</p><RailTrack total={questions.length} current={questions.length} /></div>
+            <p className="text-sm font-semibold text-white">{title}</p>
+          </>
+        }
+      >
+        <div className={`${enter} flex flex-col gap-7`}>
+          <div className="flex flex-col gap-2">
+            <p className="pv-eyebrow">Last step</p>
+            <h1 className="pv-display pv-grad text-[clamp(34px,5vw,56px)]">Review your answers</h1>
             <p className="pv-muted">Take a last look. You can edit any answer before submitting.</p>
           </div>
           <ol className="flex flex-col gap-4">
             {questions.map((q, i) => {
               const text = answers[q.id]?.text ?? "";
               return (
-                <li key={q.id} className="pv-glass flex gap-4 p-5 sm:p-6" style={{ animation: `pv-rise .6s ${0.05 * i}s both cubic-bezier(.2,.8,.2,1)` }}>
+                <li key={q.id} className="pv-glass flex gap-4 p-5" style={{ animation: `pv-rise .6s ${0.05 * i}s both cubic-bezier(.2,.8,.2,1)` }}>
                   <span className="pv-num" aria-hidden="true">{i + 1}</span>
                   <div className="flex min-w-0 flex-1 flex-col gap-2">
                     <p className="font-semibold leading-snug">{i + 1}. {q.text}{q.required && <span aria-label="required" className="pv-accent"> *</span>}</p>
@@ -208,7 +246,7 @@ export function SurveyFlow({ token, readOnly, session }: { token: string; readOn
             <button className="pv-btn pv-btn-primary" disabled={pending} onClick={submit}>{pending ? "Submitting…" : "Submit Interview"}</button>
           </div>
         </div>
-      </PvShell>
+      </PvSplit>
     );
   }
 
@@ -221,19 +259,30 @@ export function SurveyFlow({ token, readOnly, session }: { token: string; readOn
   const next = () => go(isLast ? "review" : step + 1, step, true, "fwd");
 
   return (
-    <PvShell>
+    <PvSplit
+      orb="small"
+      rail={
+        <>
+          <Brand onDark />
+          <div className="pv-rail-desktop"><p className="pv-rail-eyebrow mb-4">Your progress</p><RailTrack total={questions.length} current={step} /></div>
+          <div className="flex flex-col gap-1">
+            <p className="text-sm font-semibold text-white">{title}</p>
+            <p className="pv-rail-desktop text-sm text-[rgba(230,247,244,.7)]">Your answers are saved as you go.</p>
+          </div>
+        </>
+      }
+    >
       <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <Brand />
-          <p className="pv-muted text-sm font-medium tabular-nums">Question {step + 1} of {questions.length}</p>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="pv-muted text-sm font-semibold tabular-nums">Question {step + 1} of {questions.length}</p>
+          {ModeToggle}
         </div>
         <div role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label="Progress" className="pv-progress">
           <span style={{ width: `${pct}%` }} />
         </div>
-        <div className="flex justify-end">{ModeToggle}</div>
       </div>
 
-      <div key={String(step)} className={`${enter} flex flex-col gap-7`}>
+      <div key={String(step)} className={`${enter} flex flex-col gap-6`}>
         <h1 className="pv-display pv-question">
           {q.text}
           {q.required && <span aria-label="required" className="pv-accent"> *</span>}
@@ -277,6 +326,6 @@ export function SurveyFlow({ token, readOnly, session }: { token: string; readOn
           </div>
         </div>
       </div>
-    </PvShell>
+    </PvSplit>
   );
 }

@@ -1,18 +1,35 @@
-/** Soft animated backdrop + one large centered card shared by every participant screen. */
-export function PvShell({ children, wide = false }: { children: React.ReactNode; wide?: boolean }) {
+/** Split layout: a deep-teal rail (brand, context, progress) beside a bright working pane. */
+export function PvSplit({ rail, children, orb = "large" }: { rail: React.ReactNode; children: React.ReactNode; orb?: "large" | "small" }) {
   return (
-    <div className="pv">
-      <div className="pv-aurora" aria-hidden="true"><i /><i /><i /></div>
-      <main className="mx-auto flex min-h-dvh w-full items-center justify-center px-3 py-6 sm:px-6 sm:py-10">
-        <div className={`pv-card flex w-full flex-col gap-8 ${wide ? "max-w-4xl" : "max-w-3xl"}`}>{children}</div>
+    <div className="pv pv-split">
+      <aside className="pv-rail">
+        <div className={`pv-rail-orb ${orb === "small" ? "small" : ""}`} aria-hidden="true" />
+        {rail}
+      </aside>
+      <main className="pv-pane">
+        <div className="pv-pane-inner">{children}</div>
       </main>
     </div>
   );
 }
 
-export function Brand() {
+/** Vertical progress tracker for the rail (decorative: the pane carries the accessible progress bar). */
+export function RailTrack({ total, current }: { total: number; current: number }) {
   return (
-    <div className="flex items-center gap-2.5 text-sm font-bold tracking-wide text-[var(--pv-teal-dark)]">
+    <ol className="pv-track" aria-hidden="true">
+      {Array.from({ length: total }, (_, i) => (
+        <li key={i} className={i < current ? "done" : i === current ? "now" : ""}>
+          <span className="dot">{i < current ? "✓" : i + 1}</span>
+          {i === current ? "You are here" : i < current ? "Answered" : "Up next"}
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+export function Brand({ onDark = false }: { onDark?: boolean }) {
+  return (
+    <div className={`flex items-center gap-2.5 text-sm font-bold tracking-wide ${onDark ? "text-white" : "text-[var(--pv-teal-dark)]"}`}>
       <span className="grid h-7 w-7 place-items-center rounded-lg bg-gradient-to-br from-[#5fc9bd] to-[#2b6f70]" aria-hidden="true">
         <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round"><path d="M12 3v11M8 7v4M16 7v4M4 9.5v1M20 9.5v1M12 18v3" /></svg>
       </span>
