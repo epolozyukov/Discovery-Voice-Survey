@@ -28,4 +28,24 @@ describe("getTranscriptionConfig", () => {
   it("respects an explicit valid model", () => {
     expect(getTranscriptionConfig({ ...groq, TRANSCRIPTION_MODEL: "whisper-large-v3" })?.model).toBe("whisper-large-v3");
   });
+
+  it("strips wrapping quotes pasted into Vercel (regression candidate)", () => {
+    const c = getTranscriptionConfig({
+      TRANSCRIPTION_BASE_URL: '"https://api.groq.com/openai/v1"',
+      TRANSCRIPTION_API_KEY: "'gsk_abc'",
+      TRANSCRIPTION_MODEL: '"whisper-large-v3-turbo"',
+    });
+    expect(c).toEqual({ baseUrl: "https://api.groq.com/openai/v1", apiKey: "gsk_abc", model: "whisper-large-v3-turbo" });
+  });
+  it("strips a pasted /audio/transcriptions suffix", () => {
+    expect(getTranscriptionConfig({ ...groq, TRANSCRIPTION_BASE_URL: "https://api.groq.com/openai/v1/audio/transcriptions" })?.baseUrl).toBe(
+      "https://api.groq.com/openai/v1",
+    );
+  });
+  it("adds /openai/v1 when only the Groq host is given", () => {
+    expect(getTranscriptionConfig({ ...groq, TRANSCRIPTION_BASE_URL: "https://api.groq.com" })?.baseUrl).toBe("https://api.groq.com/openai/v1");
+  });
+  it("strips a 'Bearer ' prefix accidentally pasted with the key", () => {
+    expect(getTranscriptionConfig({ ...groq, TRANSCRIPTION_API_KEY: "Bearer gsk_abc" })?.apiKey).toBe("gsk_abc");
+  });
 });
