@@ -31,7 +31,7 @@ test("admin creates a survey, SME answers by text and voice, admin reviews and e
   await expect(page.getByRole("heading", { name: new RegExp(title) })).toBeVisible();
 
   await page.getByRole("button", { name: "Activate" }).click();
-  await expect(page.getByText("(active)")).toBeVisible();
+  await expect(page.getByTestId("status")).toHaveText("Active");
   await page.getByRole("button", { name: "Generate" }).click();
   await expect(page.getByText("SME-001")).toBeVisible();
 
@@ -103,7 +103,7 @@ test("admin creates a survey, SME answers by text and voice, admin reviews and e
   // --- Deactivated survey: link stops working
   await page.goto(`/admin/surveys/${s!.id}`);
   await page.getByRole("button", { name: "Deactivate" }).click();
-  await expect(page.getByText("(inactive)")).toBeVisible();
+  await expect(page.getByTestId("status")).toHaveText("Inactive");
   const fresh = await smeCtx.newPage();
   await fresh.goto(link);
   await expect(fresh.getByRole("heading", { name: "This survey is not open" })).toBeVisible();

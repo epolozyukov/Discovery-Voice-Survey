@@ -11,6 +11,7 @@ export function useRecorder(onComplete: (audio: Blob) => void) {
   const [state, setState] = useState<RecorderState>("idle");
   const [seconds, setSeconds] = useState(0);
   const [error, setError] = useState<RecorderError>();
+  const [liveStream, setLiveStream] = useState<MediaStream | null>(null);
   const recorder = useRef<MediaRecorder | null>(null);
   const stream = useRef<MediaStream | null>(null);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -23,6 +24,7 @@ export function useRecorder(onComplete: (audio: Blob) => void) {
     timer.current = null;
     stream.current?.getTracks().forEach((t) => t.stop());
     stream.current = null;
+    setLiveStream(null);
   }, []);
 
   const stop = useCallback(() => {
@@ -34,6 +36,7 @@ export function useRecorder(onComplete: (audio: Blob) => void) {
     if (typeof MediaRecorder === "undefined" || !navigator.mediaDevices?.getUserMedia) return setError("unsupported");
     try {
       stream.current = await navigator.mediaDevices.getUserMedia({ audio: true });
+      setLiveStream(stream.current);
     } catch {
       return setError("denied");
     }
@@ -73,5 +76,5 @@ export function useRecorder(onComplete: (audio: Blob) => void) {
     cleanup();
   }, [cleanup]);
 
-  return { state, seconds, error, start, stop };
+  return { state, seconds, error, stream: liveStream, start, stop };
 }

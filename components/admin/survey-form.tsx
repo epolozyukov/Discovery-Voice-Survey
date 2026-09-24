@@ -33,20 +33,22 @@ export function SurveyForm({ surveyId, initial }: Props) {
 
   return (
     <form onSubmit={(e) => { e.preventDefault(); submit(); }} className="flex flex-col gap-6">
-      <label className="flex flex-col gap-1 text-sm font-medium">
+      <div className="ad-card flex flex-col gap-5 p-6">
+      <label className="flex flex-col gap-1.5 text-sm font-medium">
         Title
         <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={200} required className={input} />
       </label>
-      <label className="flex flex-col gap-1 text-sm font-medium">
+      <label className="flex flex-col gap-1.5 text-sm font-medium">
         Description (shown on the welcome screen)
         <textarea value={description} onChange={(e) => setDescription(e.target.value)} maxLength={2000} rows={3} className={input} />
       </label>
+      </div>
       <fieldset className="flex flex-col gap-4">
-        <legend className="mb-2 text-sm font-medium">Questions</legend>
+        <legend className="mb-3 text-lg font-semibold">Questions</legend>
         {questions.map((q, i) => (
-          <div key={i} className="flex flex-col gap-2 rounded-md border border-gray-300 p-3">
+          <div key={i} className="ad-card flex flex-col gap-3 p-4">
             <label className="flex flex-col gap-1 text-sm">
-              <span className="font-medium">Question {i + 1}</span>
+              <span className="font-semibold">Question {i + 1}</span>
               <textarea value={q.text} onChange={(e) => update(i, { text: e.target.value })} maxLength={1000} rows={2} className={input} />
             </label>
             <div className="flex flex-wrap items-center gap-2">
@@ -61,7 +63,7 @@ export function SurveyForm({ surveyId, initial }: Props) {
         ))}
         <button type="button" className={`${btnSecondary} self-start`} onClick={() => setQuestions((qs) => [...qs, { text: "", required: true }])}>+ Add question</button>
       </fieldset>
-      {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
+      {error && <p role="alert" className="rounded-lg bg-ad-bad-soft px-3 py-2 text-sm text-ad-bad">{error}</p>}
       <button type="submit" disabled={pending} className={`${btnPrimary} self-start`}>{pending ? "Saving…" : "Save"}</button>
     </form>
   );

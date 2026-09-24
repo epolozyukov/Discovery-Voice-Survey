@@ -4,6 +4,7 @@ import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
 import { getResponseDetail } from "@/lib/data/admin";
 import { removeParticipant, resetParticipant } from "@/app/admin/actions";
+import { StatusPill } from "@/components/admin/status-pill";
 import { btnDanger, btnSecondary } from "@/components/ui/styles";
 
 export const dynamic = "force-dynamic";
@@ -17,30 +18,37 @@ export default async function ResponsePage({ params }: { params: Promise<{ id: s
 
   return (
     <main className="flex flex-col gap-6">
-      <Link href={`/admin/surveys/${id}`} className="text-sm text-blue-700 underline">← Back to survey</Link>
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">{detail.participant.label} <span className="text-base font-normal text-gray-600">({detail.status.replace("_", " ")})</span></h1>
+      <Link href={`/admin/surveys/${id}`} className="text-sm font-medium text-ad-muted hover:text-ad-brand">← Back to survey</Link>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <h1 className="text-3xl font-bold tracking-tight">{detail.participant.label}</h1>
+          <StatusPill value={detail.status} />
+        </div>
         <div className="flex gap-2">
-        <form action={resetParticipant}>
-          <input type="hidden" name="surveyId" value={id} />
-          <input type="hidden" name="participantId" value={participantId} />
-          <button className={btnSecondary}>Reset answers</button>
-        </form>
-        <form action={removeParticipant}>
-          <input type="hidden" name="surveyId" value={id} />
-          <input type="hidden" name="participantId" value={participantId} />
-          <button className={btnDanger}>Delete participant &amp; answers</button>
-        </form>
+          <form action={resetParticipant}>
+            <input type="hidden" name="surveyId" value={id} />
+            <input type="hidden" name="participantId" value={participantId} />
+            <button className={btnSecondary}>Reset answers</button>
+          </form>
+          <form action={removeParticipant}>
+            <input type="hidden" name="surveyId" value={id} />
+            <input type="hidden" name="participantId" value={participantId} />
+            <button className={btnDanger}>Delete participant &amp; answers</button>
+          </form>
         </div>
       </div>
-      <ol className="flex flex-col gap-5">
+      <ol className="flex flex-col gap-4">
         {detail.items.map(({ question, answer, inputMethod }, i) => (
-          <li key={question.id}>
-            <p className="text-sm font-medium text-gray-600">Q{String(i + 1).padStart(2, "0")}</p>
-            <p className="font-medium">{question.text}</p>
-            {/* React escapes text; whitespace-pre-wrap keeps line breaks */}
-            <p className="mt-1 whitespace-pre-wrap">{answer ?? <span className="text-gray-500">No answer</span>}</p>
-            {inputMethod && <p className="text-xs text-gray-500">via {inputMethod}</p>}
+          <li key={question.id} className="ad-card flex gap-4 p-5">
+            <span className="grid h-9 w-9 flex-none place-items-center rounded-xl bg-ad-brand-soft text-sm font-bold text-ad-brand">Q{i + 1}</span>
+            <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+              <p className="font-semibold leading-snug">{question.text}</p>
+              {/* React escapes text; whitespace-pre-wrap keeps line breaks */}
+              <p className="whitespace-pre-wrap break-words">{answer ?? <span className="text-ad-muted">No answer</span>}</p>
+              {inputMethod && (
+                <p className="text-xs font-medium text-ad-muted">{inputMethod === "voice" ? "🎙 Spoken, then edited" : "⌨ Typed"}</p>
+              )}
+            </div>
           </li>
         ))}
       </ol>
