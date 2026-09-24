@@ -131,3 +131,10 @@ export async function submitSurvey(token: string): Promise<ActionResult> {
     .neq("status", "completed");
   return error ? { ok: false, error: "Could not submit. Please try again." } : { ok: true };
 }
+
+/** True when the token belongs to an active survey and an unsubmitted response. */
+export async function canParticipantAnswer(token: string): Promise<boolean> {
+  const found = await findByToken(token);
+  const access = checkParticipantAccess(found && { surveyStatus: found.surveyStatus, responseStatus: found.status });
+  return access.ok && !access.readOnly;
+}

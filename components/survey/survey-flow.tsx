@@ -5,6 +5,7 @@ import { saveAnswerAction, submitAction } from "@/app/survey/[token]/actions";
 import { MAX_ANSWER_LENGTH } from "@/lib/config/limits";
 import { validateAnswerText, findMissingRequired } from "@/lib/domain/answers";
 import { btnPrimary, btnSecondary, input } from "@/components/ui/styles";
+import { VoiceAnswer } from "@/components/voice/voice-answer";
 import type { ParticipantSession } from "@/lib/data/participant";
 import type { InputMethod } from "@/types";
 
@@ -55,8 +56,11 @@ export function SurveyFlow({ token, readOnly, session }: { token: string; readOn
     writeDraft(token, { answers, step });
   }, [answers, step, token, readOnly]);
 
+  /** Typing edits keep the original input method, so an edited transcript stays "voice". */
   const setText = (id: string, text: string) =>
     setAnswers((a) => ({ ...a, [id]: { text, inputMethod: a[id]?.inputMethod ?? "text" } }));
+  const setTranscript = (id: string, text: string) =>
+    setAnswers((a) => ({ ...a, [id]: { text, inputMethod: "voice" } }));
 
   /** Persists one answer; on failure the text stays in the local draft so the user can retry. */
   const persist = async (index: number): Promise<boolean> => {
@@ -163,6 +167,8 @@ export function SurveyFlow({ token, readOnly, session }: { token: string; readOn
           onChange={(e) => setText(q.id, e.target.value)}
         />
       </label>
+      <VoiceAnswer token={token} hasAnswer={answers[q.id]?.inputMethod === "voice"} onTranscript={(t) => setTranscript(q.id, t)} />
+      {answers[q.id]?.inputMethod === "voice" && <p className="text-sm text-gray-600">Transcribed from your recording — please check and edit the text above before continuing.</p>}
       {error && <p role="alert" className="text-red-700">{error}</p>}
       <div className="flex justify-between">
         <button className={btnSecondary} disabled={pending || step === 0} onClick={() => go(step - 1, step)}>← Back</button>

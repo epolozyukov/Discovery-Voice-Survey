@@ -2,10 +2,9 @@
 
 Lightweight internal app that collects structured answers from Subject Matter Experts (SMEs) before Discovery
 workshops. An admin defines a fixed list of questions; each SME gets a **personal link** and answers one question at a
-time. No LLM is involved. (Voice input is Phase 2.)
+time. No LLM is involved. Answers can be typed or recorded; recordings are transcribed to editable text.
 
-**Status:** Phase 1 (core survey: admin auth, survey/question management, personal links, text answers, review,
-submission, admin results + CSV/JSON export). Voice, integration tests and full E2E are still to do.
+**Status:** Phases 1–2 (core survey + voice input). Integration tests and the full E2E happy path are still to do.
 
 ## Stack
 Next.js 16 (App Router, Server Actions, `proxy.ts`), React, TypeScript (strict), Tailwind, Zod, Supabase (Postgres + Auth),
@@ -40,7 +39,15 @@ npm run dev
 | `SUPABASE_SERVICE_ROLE_KEY` | **Secret**, server only. Never expose to the browser |
 | `ADMIN_EMAILS` | Comma-separated emails allowed into `/admin` |
 | `NEXT_PUBLIC_MAX_ANSWER_LENGTH` | Optional, default 10000 |
-| `NEXT_PUBLIC_MAX_RECORDING_SECONDS` | Optional, default 300 (used in Phase 2) |
+| `NEXT_PUBLIC_MAX_RECORDING_SECONDS` | Optional, default 300 |
+| `TRANSCRIPTION_BASE_URL` / `TRANSCRIPTION_API_KEY` / `TRANSCRIPTION_MODEL` | Any OpenAI-compatible `/audio/transcriptions` endpoint. **Secret**, server only |
+| `NEXT_PUBLIC_TRANSCRIPTION_PROVIDER` | Set to `mock` for tests |
+
+### Voice / privacy
+The browser records with `MediaRecorder` (~32 kbps), uploads the temporary audio to `/api/transcription`, which forwards it
+to the configured speech-to-text provider and returns text. **Audio is never stored** by this app. Whatever provider you
+configure receives the audio, so choose one your organisation approves (or self-host faster-whisper). If unconfigured, the
+route returns 503 and participants are told to type instead.
 
 ### Database setup
 Apply `supabase/migrations/20260924000000_init.sql` (Supabase SQL editor, or `supabase db push` with the CLI).
@@ -64,4 +71,4 @@ typecheck, unit tests, build and E2E on every PR.
 - Integration tests against a Supabase test project; full E2E happy path (needs test DB + admin user).
 - Rate limiting (needs an external store such as Upstash on Vercel).
 - Stricter nonce-based CSP.
-- Phase 2 voice input, Phase 3 polish of results.
+- Voice E2E with the mock provider (needs the test DB); the transcription route's rate limit is per-instance only.

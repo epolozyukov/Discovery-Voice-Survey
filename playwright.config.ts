@@ -2,7 +2,11 @@ import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
   testDir: "tests/e2e",
-  use: { baseURL: "http://localhost:3100" },
+  use: {
+    baseURL: "http://localhost:3100",
+    permissions: ["microphone"],
+    launchOptions: { args: ["--use-fake-device-for-media-stream", "--use-fake-ui-for-media-stream"] },
+  },
   webServer: {
     command: "npx next dev -p 3100",
     url: "http://localhost:3100/admin/login",
