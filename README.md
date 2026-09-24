@@ -1,2 +1,67 @@
-# Discovery-Voice-Survey
-The application will be used before Discovery workshops to collect structured qualitative information from Subject Matter Experts (SMEs).
+# Discovery Voice Survey
+
+Lightweight internal app that collects structured answers from Subject Matter Experts (SMEs) before Discovery
+workshops. An admin defines a fixed list of questions; each SME gets a **personal link** and answers one question at a
+time. No LLM is involved. (Voice input is Phase 2.)
+
+**Status:** Phase 1 (core survey: admin auth, survey/question management, personal links, text answers, review,
+submission, admin results + CSV/JSON export). Voice, integration tests and full E2E are still to do.
+
+## Stack
+Next.js 16 (App Router, Server Actions, `proxy.ts`), React, TypeScript (strict), Tailwind, Zod, Supabase (Postgres + Auth),
+Vitest, Playwright. Hosted on Vercel.
+
+## Design decisions
+- **One link per SME** (`/survey/<43-char random token>`). Each link maps to one participant and one response.
+- **All data access is server-side** using the Supabase service-role key. RLS is enabled with *no* policies, so the
+  browser (anon key) cannot read or write tables directly.
+- **Admins** sign in with Supabase Auth (email + password) and must also be listed in `ADMIN_EMAILS`. Disable public
+  signups in Supabase (Auth → Providers → Email → disable "Allow new users to sign up") and create admin users manually.
+- Answers are **autosaved to the server** on Next/Back and mirrored in `localStorage` to survive refreshes/network errors.
+- Questions become **locked once any participant has answered** (delete the participant's data first to change them).
+
+## Prerequisites
+Node.js 20+ (developed on 25), npm, a Supabase project, a Vercel account for deployment.
+
+## Local setup
+```bash
+git clone https://github.com/epolozyukov/Discovery-Voice-Survey
+cd Discovery-Voice-Survey
+npm install
+cp .env.example .env.local   # then fill in values
+npm run dev
+```
+
+### Environment variables
+| Variable | Purpose |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public anon key (used only for admin sign-in) |
+| `SUPABASE_SERVICE_ROLE_KEY` | **Secret**, server only. Never expose to the browser |
+| `ADMIN_EMAILS` | Comma-separated emails allowed into `/admin` |
+| `NEXT_PUBLIC_MAX_ANSWER_LENGTH` | Optional, default 10000 |
+| `NEXT_PUBLIC_MAX_RECORDING_SECONDS` | Optional, default 300 (used in Phase 2) |
+
+### Database setup
+Apply `supabase/migrations/20260924000000_init.sql` (Supabase SQL editor, or `supabase db push` with the CLI).
+
+## Testing
+```bash
+npm run lint
+npm run typecheck
+npm run test          # unit tests (Vitest)
+npm run test:coverage
+npm run test:e2e      # Playwright (starts its own server on :3100)
+```
+Business logic in `lib/domain/` was written test-first.
+
+## Deployment
+Connect the GitHub repo to Vercel. Pull requests get Preview deployments; merges to `main` deploy to Production.
+Set the environment variables above in Vercel for both environments. CI (`.github/workflows/ci.yml`) runs lint,
+typecheck, unit tests, build and E2E on every PR.
+
+## Known gaps / next steps
+- Integration tests against a Supabase test project; full E2E happy path (needs test DB + admin user).
+- Rate limiting (needs an external store such as Upstash on Vercel).
+- Stricter nonce-based CSP.
+- Phase 2 voice input, Phase 3 polish of results.
