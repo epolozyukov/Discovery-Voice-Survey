@@ -4,7 +4,7 @@ Lightweight internal app that collects structured answers from Subject Matter Ex
 workshops. An admin defines a fixed list of questions; each SME gets a **personal link** and answers one question at a
 time. No LLM is involved. Answers can be typed or recorded; recordings are transcribed to editable text.
 
-**Status:** Phases 1–3 (core survey, voice input, results dashboard + export). Integration tests and the full E2E happy path are still to do.
+**Status:** Phases 1–4 (core survey, voice input, results, integration + E2E tests). Remaining: Vercel deployment.
 
 ## Stack
 Next.js 16 (App Router, Server Actions, `proxy.ts`), React, TypeScript (strict), Tailwind, Zod, Supabase (Postgres + Auth),
@@ -61,6 +61,11 @@ npm run test:coverage
 npm run test:e2e      # Playwright (starts its own server on :3100)
 ```
 Business logic in `lib/domain/` was written test-first.
+
+- **Integration tests** (`tests/integration`) and the **E2E happy path** (`tests/e2e/happy-path.spec.ts`) run against the
+  Supabase project in `.env.local` and **skip automatically when it is not configured**. Use a dedicated test project, not production.
+- E2E creates a temporary admin user (`e2e-admin@example.test`) and `E2E …` surveys, and deletes them afterwards.
+- E2E uses the mock transcription provider and Chromium's fake microphone, so no real speech API is called.
 
 ## Deployment
 Connect the GitHub repo to Vercel. Pull requests get Preview deployments; merges to `main` deploy to Production.
