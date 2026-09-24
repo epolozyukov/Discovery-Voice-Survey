@@ -1,4 +1,4 @@
-const COLORS = ["#7c5cff", "#22d3ee", "#ff4d78", "#ffd166", "#4ade80", "#ffffff"];
+const COLORS = ["#3a8b8b", "#5fc9bd", "#9be3d9", "#ffd166", "#ef6a72", "#a9c8ff"];
 
 /** Deterministic pseudo-random in [0,1) so server and client render identical markup. */
 const rnd = (i: number, salt: number) => {
