@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createWhisperCompatibleProvider } from "@/lib/transcription/whisper-compatible";
 import { MockTranscriptionProvider } from "@/lib/transcription/mock";
-import { pickRecorderMimeType, extensionForMime } from "@/lib/transcription/audio";
+import { pickRecorderMimeType, extensionForMime, hasSpeech } from "@/lib/transcription/audio";
 
 const blob = new Blob(["abc"], { type: "audio/webm" });
 
@@ -45,5 +45,17 @@ describe("audio helpers", () => {
     expect(extensionForMime("audio/mp4")).toBe("mp4");
     expect(extensionForMime("audio/ogg")).toBe("ogg");
     expect(extensionForMime("application/x")).toBe("webm");
+  });
+});
+
+describe("hasSpeech", () => {
+  it("rejects empty and punctuation-only transcripts", () => {
+    expect(hasSpeech("")).toBe(false);
+    expect(hasSpeech("  . ")).toBe(false);
+    expect(hasSpeech("...")).toBe(false);
+  });
+  it("accepts real words in any script", () => {
+    expect(hasSpeech("Yes")).toBe(true);
+    expect(hasSpeech("Так, використовуємо")).toBe(true);
   });
 });

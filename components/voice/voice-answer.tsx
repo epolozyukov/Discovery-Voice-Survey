@@ -3,10 +3,11 @@
 import { useMemo, useState } from "react";
 import { useRecorder } from "./use-recorder";
 import { getClientProvider } from "@/lib/transcription/client";
+import { hasSpeech } from "@/lib/transcription/audio";
 import { MAX_RECORDING_SECONDS } from "@/lib/config/limits";
 import { btnPrimary, btnSecondary } from "@/components/ui/styles";
 
-type Phase = "idle" | "transcribing" | "failed";
+type Phase = "idle" | "transcribing" | "failed" | "silent";
 
 const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
@@ -17,7 +18,9 @@ export function VoiceAnswer({ token, hasAnswer, onTranscript }: { token: string;
   const recorder = useRecorder(async (audio) => {
     setPhase("transcribing");
     try {
-      onTranscript(await provider.transcribe(audio));
+      const text = await provider.transcribe(audio);
+      if (!hasSpeech(text)) return setPhase("silent");
+      onTranscript(text);
       setPhase("idle");
     } catch {
       setPhase("failed");
@@ -53,6 +56,9 @@ export function VoiceAnswer({ token, hasAnswer, onTranscript }: { token: string;
       </div>
       {phase === "failed" && (
         <p role="alert" className="text-sm text-red-700">We couldn&apos;t transcribe your recording. Please try again or enter your answer manually.</p>
+      )}
+      {phase === "silent" && (
+        <p role="alert" className="text-sm text-red-700">We didn&apos;t hear anything. Please check your microphone and try again, or type your answer.</p>
       )}
       {hasAnswer && <p className="text-sm text-gray-600">Recording again replaces the current answer.</p>}
     </div>
