@@ -110,3 +110,19 @@ describe.skipIf(!hasDb)("survey lifecycle (real Supabase)", () => {
     expect(serviceClient()).toBeDefined();
   });
 });
+
+describe.skipIf(!hasDb)("participant labels after deletions (real Supabase)", () => {
+  it("generates unique labels even when an earlier participant was deleted", async () => {
+    const id = await admin.createSurvey({ title: `ITEST labels ${Date.now()}`, questions: [{ text: "Q?", required: true }] });
+    try {
+      await admin.addParticipants(id, await admin.nextParticipantLabels(id, 4));
+      const first = (await admin.listParticipants(id)).find((p) => p.label === "SME-001")!;
+      await admin.deleteParticipant(first.id);
+      await admin.addParticipants(id, await admin.nextParticipantLabels(id, 2));
+      const labels = (await admin.listParticipants(id)).map((p) => p.label).sort();
+      expect(labels).toEqual(["SME-002", "SME-003", "SME-004", "SME-005", "SME-006"]);
+    } finally {
+      await admin.deleteSurvey(id);
+    }
+  });
+});

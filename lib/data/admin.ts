@@ -1,6 +1,7 @@
 import "server-only";
 import { serviceClient } from "@/lib/supabase/admin";
 import { generateToken } from "@/lib/domain/tokens";
+import { nextParticipantLabels as computeLabels } from "@/lib/domain/labels";
 import type { SurveyInput } from "@/lib/domain/survey";
 import type { InputMethod, Question, ResponseStatus, Survey, SurveyStatus } from "@/types";
 
@@ -102,14 +103,18 @@ export async function addParticipants(surveyId: string, labels: string[]): Promi
     const p = check(
       await db.from("participants").insert({ survey_id: surveyId, label, token: generateToken() }).select("id").single(),
     ) as { id: string };
-    check(await db.from("responses").insert({ participant_id: p.id }));
+    // A participant without a response row would be unreachable, so undo it if this fails.
+    const { error } = await db.from("responses").insert({ participant_id: p.id });
+    if (error) {
+      await db.from("participants").delete().eq("id", p.id);
+      throw new Error(error.message);
+    }
   }
 }
 
 export async function nextParticipantLabels(surveyId: string, count: number): Promise<string[]> {
-  const { count: existing } = await serviceClient().from("participants").select("id", { count: "exact", head: true }).eq("survey_id", surveyId);
-  const start = (existing ?? 0) + 1;
-  return Array.from({ length: count }, (_, i) => `SME-${String(start + i).padStart(3, "0")}`);
+  const rows = check(await serviceClient().from("participants").select("label").eq("survey_id", surveyId)) as { label: string }[];
+  return computeLabels(rows.map((r) => r.label), count);
 }
 
 export interface ParticipantRow {
