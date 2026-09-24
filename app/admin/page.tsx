@@ -19,7 +19,7 @@ export default async function Dashboard() {
       ) : (
         <table className="w-full text-left text-sm">
           <thead className="border-b border-gray-400">
-            <tr><th className="py-2">Survey</th><th>Status</th><th>Questions</th><th>Completed / Participants</th></tr>
+            <tr><th className="py-2">Survey</th><th>Status</th><th>Questions</th><th>Completed / Participants</th><th>Export</th></tr>
           </thead>
           <tbody>
             {surveys.map((s) => (
@@ -28,6 +28,10 @@ export default async function Dashboard() {
                 <td className="capitalize">{s.status}</td>
                 <td>{s.questionCount}</td>
                 <td>{s.completedCount} / {s.participantCount}</td>
+                <td className="space-x-2">
+                  <a className="text-blue-700 underline" href={`/api/export/${s.id}?format=csv`}>CSV</a>
+                  <a className="text-blue-700 underline" href={`/api/export/${s.id}?format=json`}>JSON</a>
+                </td>
               </tr>
             ))}
           </tbody>

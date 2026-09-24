@@ -74,3 +74,10 @@ export async function removeParticipant(formData: FormData) {
   revalidatePath(`/admin/surveys/${surveyId}`);
   redirect(`/admin/surveys/${surveyId}`);
 }
+
+export async function resetParticipant(formData: FormData) {
+  await requireAdmin();
+  const surveyId = uuid.parse(formData.get("surveyId"));
+  await db.resetResponse(uuid.parse(formData.get("participantId")));
+  revalidatePath(`/admin/surveys/${surveyId}`, "layout");
+}

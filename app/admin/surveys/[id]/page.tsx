@@ -4,6 +4,7 @@ import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
 import { getSurveyWithQuestions, listParticipants } from "@/lib/data/admin";
 import { changeStatus, createParticipants, removeSurvey } from "../../actions";
+import { completionRate, countByStatus } from "@/lib/domain/summary";
 import { CopyButton } from "@/components/admin/copy-button";
 import { btnDanger, btnPrimary, btnSecondary, input } from "@/components/ui/styles";
 
@@ -19,6 +20,7 @@ export default async function SurveyDetail({ params }: { params: Promise<{ id: s
   if (!data) notFound();
   const participants = await listParticipants(id);
   const { survey } = data;
+  const counts = countByStatus(participants);
 
   return (
     <main className="flex flex-col gap-8">
@@ -35,6 +37,9 @@ export default async function SurveyDetail({ params }: { params: Promise<{ id: s
 
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">Participants</h2>
+        <p className="text-sm text-gray-700" data-testid="summary">
+          {counts.completed} completed · {counts.in_progress} in progress · {counts.not_started} not started ({completionRate(counts)}% complete)
+        </p>
         <form action={createParticipants} className="flex items-end gap-2">
           <input type="hidden" name="id" value={id} />
           <label className="flex flex-col gap-1 text-sm">Add links<input name="count" type="number" min={1} max={100} defaultValue={1} className={`${input} w-24`} /></label>

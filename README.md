@@ -4,7 +4,7 @@ Lightweight internal app that collects structured answers from Subject Matter Ex
 workshops. An admin defines a fixed list of questions; each SME gets a **personal link** and answers one question at a
 time. No LLM is involved. Answers can be typed or recorded; recordings are transcribed to editable text.
 
-**Status:** Phases 1–2 (core survey + voice input). Integration tests and the full E2E happy path are still to do.
+**Status:** Phases 1–3 (core survey, voice input, results dashboard + export). Integration tests and the full E2E happy path are still to do.
 
 ## Stack
 Next.js 16 (App Router, Server Actions, `proxy.ts`), React, TypeScript (strict), Tailwind, Zod, Supabase (Postgres + Auth),

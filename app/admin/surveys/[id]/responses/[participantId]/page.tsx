@@ -3,8 +3,8 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
 import { getResponseDetail } from "@/lib/data/admin";
-import { removeParticipant } from "@/app/admin/actions";
-import { btnDanger } from "@/components/ui/styles";
+import { removeParticipant, resetParticipant } from "@/app/admin/actions";
+import { btnDanger, btnSecondary } from "@/components/ui/styles";
 
 export const dynamic = "force-dynamic";
 
@@ -20,11 +20,18 @@ export default async function ResponsePage({ params }: { params: Promise<{ id: s
       <Link href={`/admin/surveys/${id}`} className="text-sm text-blue-700 underline">← Back to survey</Link>
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">{detail.participant.label} <span className="text-base font-normal text-gray-600">({detail.status.replace("_", " ")})</span></h1>
+        <div className="flex gap-2">
+        <form action={resetParticipant}>
+          <input type="hidden" name="surveyId" value={id} />
+          <input type="hidden" name="participantId" value={participantId} />
+          <button className={btnSecondary}>Reset answers</button>
+        </form>
         <form action={removeParticipant}>
           <input type="hidden" name="surveyId" value={id} />
           <input type="hidden" name="participantId" value={participantId} />
           <button className={btnDanger}>Delete participant &amp; answers</button>
         </form>
+        </div>
       </div>
       <ol className="flex flex-col gap-5">
         {detail.items.map(({ question, answer, inputMethod }, i) => (

@@ -185,3 +185,12 @@ export async function getExportData(surveyId: string) {
     })),
   };
 }
+
+/** Deletes a participant's answers and returns the response to "not_started" (link stays valid). */
+export async function resetResponse(participantId: string): Promise<void> {
+  const db = serviceClient();
+  const { data: r } = await db.from("responses").select("id").eq("participant_id", participantId).maybeSingle();
+  if (!r) return;
+  check(await db.from("answers").delete().eq("response_id", r.id));
+  check(await db.from("responses").update({ status: "not_started", started_at: null, completed_at: null }).eq("id", r.id));
+}
