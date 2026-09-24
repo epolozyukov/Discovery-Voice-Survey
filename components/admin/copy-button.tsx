@@ -12,10 +12,10 @@ export function CopyButton({ path }: { path: string }) {
       onClick={async () => {
         await navigator.clipboard.writeText(`${window.location.origin}${path}`);
         setCopied(true);
-        setTimeout(() => setCopied(false), 1500);
+        setTimeout(() => setCopied(false), 1800);
       }}
     >
-      {copied ? "Copied" : "Copy link"}
+      {copied ? "✓ Copied" : "Copy link"}
     </button>
   );
 }

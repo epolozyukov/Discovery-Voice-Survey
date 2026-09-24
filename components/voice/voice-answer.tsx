@@ -2,16 +2,17 @@
 
 import { useMemo, useState } from "react";
 import { useRecorder } from "./use-recorder";
+import { Waveform } from "./waveform";
+import { Icon } from "@/components/survey/pv-shell";
 import { getClientProvider } from "@/lib/transcription/client";
 import { hasSpeech } from "@/lib/transcription/audio";
 import { MAX_RECORDING_SECONDS } from "@/lib/config/limits";
-import { btnPrimary, btnSecondary } from "@/components/ui/styles";
 
 type Phase = "idle" | "transcribing" | "failed" | "silent";
 
 const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
-/** Record button + status. Calls onTranscript with the raw transcript; the parent owns editing. */
+/** Record button + live feedback. Calls onTranscript with the raw transcript; the parent owns editing. */
 export function VoiceAnswer({ token, hasAnswer, onTranscript }: { token: string; hasAnswer: boolean; onTranscript: (text: string) => void }) {
   const provider = useMemo(() => getClientProvider(token), [token]);
   const [phase, setPhase] = useState<Phase>("idle");
@@ -29,7 +30,7 @@ export function VoiceAnswer({ token, hasAnswer, onTranscript }: { token: string;
 
   if (recorder.error) {
     return (
-      <p role="alert" className="rounded-md border border-gray-300 p-3 text-sm">
+      <p role="alert" className="pv-note w-full">
         {recorder.error === "denied" || recorder.error === "unsupported"
           ? "Microphone access is unavailable. You can continue by typing your answer instead."
           : "Recording could not start. Please type your answer instead."}
@@ -39,28 +40,39 @@ export function VoiceAnswer({ token, hasAnswer, onTranscript }: { token: string;
 
   if (recorder.state === "recording") {
     return (
-      <div className="flex items-center gap-4" role="status" aria-live="polite">
-        <span className="font-medium text-red-700">● Recording… {fmt(recorder.seconds)} / {fmt(MAX_RECORDING_SECONDS)}</span>
-        <button type="button" className={btnPrimary} onClick={recorder.stop}>Stop Recording</button>
+      <div className="flex w-full flex-col gap-3">
+        <Waveform stream={recorder.stream} />
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <span role="status" aria-live="polite" className="text-[15px] font-medium text-[#ffb4c2]">
+            Recording… {fmt(recorder.seconds)} / {fmt(MAX_RECORDING_SECONDS)}
+          </span>
+          <button type="button" className="pv-btn pv-btn-primary pv-btn-sm pv-mic rec" onClick={recorder.stop}>
+            <Icon name="stop" /> Stop Recording
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-3">
-        <button type="button" className={btnSecondary} disabled={phase === "transcribing"} onClick={() => { setPhase("idle"); void recorder.start(); }}>
-          🎙 {hasAnswer ? "Record Again" : "Record Answer"}
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          className="pv-btn pv-btn-ghost pv-btn-sm"
+          disabled={phase === "transcribing"}
+          onClick={() => { setPhase("idle"); void recorder.start(); }}
+        >
+          <Icon name="mic" /> {hasAnswer ? "Record Again" : "Record Answer"}
         </button>
-        {phase === "transcribing" && <span role="status">Transcribing…</span>}
+        {phase === "transcribing" && <span role="status" className="pv-muted text-sm">Transcribing your voice…</span>}
       </div>
       {phase === "failed" && (
-        <p role="alert" className="text-sm text-red-700">We couldn&apos;t transcribe your recording. Please try again or enter your answer manually.</p>
+        <p role="alert" className="pv-error">We couldn&apos;t transcribe your recording. Please try again or enter your answer manually.</p>
       )}
       {phase === "silent" && (
-        <p role="alert" className="text-sm text-red-700">We didn&apos;t hear anything. Please check your microphone and try again, or type your answer.</p>
+        <p role="alert" className="pv-error">We didn&apos;t hear anything. Please check your microphone and try again, or type your answer.</p>
       )}
-      {hasAnswer && <p className="text-sm text-gray-600">Recording again replaces the current answer.</p>}
     </div>
   );
 }

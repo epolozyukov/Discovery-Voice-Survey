@@ -1,7 +1,7 @@
 export const btn =
-  "inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:opacity-50";
-export const btnPrimary = `${btn} bg-blue-700 text-white hover:bg-blue-800`;
-export const btnSecondary = `${btn} border border-gray-400 bg-white text-gray-900 hover:bg-gray-50`;
-export const btnDanger = `${btn} border border-red-700 bg-white text-red-700 hover:bg-red-50`;
+  "inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ad-brand disabled:cursor-not-allowed disabled:opacity-50";
+export const btnPrimary = `${btn} bg-ad-brand text-ad-on-brand shadow-sm hover:brightness-110`;
+export const btnSecondary = `${btn} border border-ad-line bg-ad-card text-ad-ink hover:bg-ad-brand-soft`;
+export const btnDanger = `${btn} border border-ad-bad/40 bg-ad-card text-ad-bad hover:bg-ad-bad-soft`;
 export const input =
-  "w-full rounded-md border border-gray-400 bg-white px-3 py-2 text-base text-gray-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600";
+  "w-full rounded-lg border border-ad-line bg-ad-card px-3 py-2.5 text-base text-ad-ink placeholder:text-ad-muted focus-visible:border-ad-brand focus-visible:outline-2 focus-visible:outline-ad-brand";
