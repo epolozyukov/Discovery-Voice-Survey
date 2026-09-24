@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { canParticipantAnswer } from "@/lib/data/participant";
 import { MAX_AUDIO_BYTES } from "@/lib/transcription/audio";
-import { createWhisperCompatibleProvider } from "@/lib/transcription/whisper-compatible";
+import { getTranscriptionConfig } from "@/lib/transcription/config";
+import { TranscriptionError, createWhisperCompatibleProvider } from "@/lib/transcription/whisper-compatible";
 
 // Best-effort per-instance limiter; use a shared store (e.g. Upstash) for strict limits on serverless.
 const hits = new Map<string, number[]>();
@@ -18,9 +19,8 @@ function limited(key: string): boolean {
 const fail = (status: number, error: string) => NextResponse.json({ error }, { status, headers: { "Cache-Control": "no-store" } });
 
 export async function POST(request: NextRequest) {
-  const baseUrl = process.env.TRANSCRIPTION_BASE_URL;
-  const apiKey = process.env.TRANSCRIPTION_API_KEY;
-  if (!baseUrl || !apiKey) return fail(503, "Transcription is not available.");
+  const config = getTranscriptionConfig();
+  if (!config) return fail(503, "Transcription is not available.");
 
   const declared = Number(request.headers.get("content-length") ?? 0);
   if (declared > MAX_AUDIO_BYTES + 10_000) return fail(413, "Recording too large.");
@@ -35,11 +35,11 @@ export async function POST(request: NextRequest) {
   if (limited(token)) return fail(429, "Too many requests.");
 
   try {
-    const provider = createWhisperCompatibleProvider({ baseUrl, apiKey, model: process.env.TRANSCRIPTION_MODEL ?? "whisper-1" });
-    const text = await provider.transcribe(audio);
+    const text = await createWhisperCompatibleProvider(config).transcribe(audio);
     return NextResponse.json({ text }, { headers: { "Cache-Control": "no-store" } });
-  } catch {
-    // Deliberately no logging of audio/transcript content.
+  } catch (e) {
+    // Log only the upstream HTTP status (never audio, transcripts, keys or upstream bodies).
+    console.error(`transcription upstream failed status=${e instanceof TranscriptionError ? (e.status ?? "n/a") : "error"}`);
     return fail(502, "Transcription failed.");
   }
 }
