@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Discovery Voice Survey – Overview</title>
+<style>
+  :root {
+    --bg: #f5f6f8; --card: #ffffff; --ink: #14181f; --muted: #5a6472; --line: #d5dae1;
+    --accent: #1d4ed8; --accent-soft: #e3ebff;
+    --vercel: #eef0f3; --supabase: #dff5e8; --supabase-line: #2f9e63;
+    --groq: #ffe9d6; --groq-line: #d9701c; --git: #ececf6; --actor: #e3ebff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0e1117; --card: #171b23; --ink: #e8ecf2; --muted: #9aa5b5; --line: #2c3442;
+      --accent: #7aa2ff; --accent-soft: #1d2a4a;
+      --vercel: #1d222c; --supabase: #14301f; --supabase-line: #3fbf80;
+      --groq: #3a2412; --groq-line: #f08c3a; --git: #22232f; --actor: #1d2a4a;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-snap-type: y proximity; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  .slide { min-height: 100vh; scroll-snap-align: start; padding: 32px max(16px, 4vw); display: flex; flex-direction: column; gap: 20px; }
+  .slide + .slide { border-top: 1px solid var(--line); }
+  header .eyebrow { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+  h1 { margin: 2px 0 4px; font-size: clamp(24px, 3.2vw, 36px); line-height: 1.15; }
+  header p { margin: 0; color: var(--muted); max-width: 70ch; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .chip { font-size: 13px; padding: 4px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+
+  /* diagram */
+  .diagram { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px; }
+  svg { width: 100%; height: auto; display: block; }
+  svg text { fill: var(--ink); font-family: inherit; }
+  svg .sub { fill: var(--muted); font-size: 13px; }
+  svg .h { font-size: 16px; font-weight: 700; }
+  svg .t { font-size: 14px; font-weight: 600; }
+  svg .lbl { font-size: 13px; font-weight: 700; fill: var(--accent); }
+  svg .box { fill: var(--card); stroke: var(--line); stroke-width: 1.5; }
+  svg .arrow { stroke: var(--accent); stroke-width: 2.2; fill: none; }
+  svg .arrow.dash { stroke-dasharray: 6 5; }
+  .num { fill: var(--accent); }
+  .numt { fill: #fff !important; font-size: 13px; font-weight: 700; }
+  .flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px 24px; margin: 0; padding: 0; list-style: none; counter-reset: f; }
+  .flow li { counter-increment: f; display: grid; grid-template-columns: 28px 1fr; gap: 10px; font-size: 14.5px; }
+  .flow li::before { content: counter(f); width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: #fff;
+    display: grid; place-items: center; font-size: 13px; font-weight: 700; margin-top: 1px; }
+  .flow b { display: block; }
+
+  /* instructions */
+  .cols { display: grid; grid-template-columns: 1.15fr 1fr; gap: 20px; }
+  @media (max-width: 900px) { .cols { grid-template-columns: 1fr; } }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; }
+  .panel h2 { margin: 0 0 12px; font-size: 18px; }
+  .panel h2 span { font-weight: 500; color: var(--muted); font-size: 14px; }
+  ol.steps { margin: 0; padding: 0; list-style: none; counter-reset: s; display: grid; gap: 11px; }
+  ol.steps li { counter-increment: s; display: grid; grid-template-columns: 30px 1fr; gap: 10px; font-size: 15px; }
+  ol.steps li::before { content: counter(s); width: 26px; height: 26px; border-radius: 8px; background: var(--accent-soft); color: var(--accent);
+    display: grid; place-items: center; font-weight: 700; font-size: 14px; }
+  ol.steps b { font-weight: 650; }
+  ol.steps small { display: block; color: var(--muted); font-size: 13.5px; }
+  code { background: var(--accent-soft); color: var(--accent); padding: 1px 6px; border-radius: 5px; font-size: 13.5px; }
+  .tips { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; }
+  .tip { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 10px; padding: 10px 12px; font-size: 14px; }
+  .tip > b:first-child { display: block; margin-bottom: 2px; }
+  .limits { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--groq-line); border-radius: 12px; padding: 14px 18px; }
+  .limits h2 { margin: 0 0 8px; font-size: 16px; }
+  .limits .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 8px 24px; font-size: 14px; }
+  .limits ul { margin: 0; padding-left: 18px; }
+  .limits li { margin: 2px 0; }
+  .limits small { display: block; margin-top: 8px; color: var(--muted); font-size: 12.5px; }
+  footer { color: var(--muted); font-size: 12.5px; margin-top: auto; }
+
+  @media print {
+    @page { size: A4 landscape; margin: 10mm; }
+    html { scroll-snap-type: none; }
+    .slide { min-height: 0; width: 1400px; zoom: 0.5; margin: 0 auto; padding: 0; page-break-after: always; break-inside: avoid; border: 0; }
+    .slide:last-child { page-break-after: auto; }
+    body { background: #fff; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ SLIDE 1: ARCHITECTURE ============ -->
+<section class="slide" id="architecture" aria-labelledby="t1">
+  <header>
+    <div class="eyebrow">Discovery Voice Survey · 1 of 2</div>
+    <h1 id="t1">How the pieces fit together</h1>
+    <p>A small web app that collects answers from experts before a Discovery workshop. Experts type or speak; speech is turned into editable text. Questions are fixed by the admin.</p>
+    <div class="chips">
+      <span class="chip">Only one AI model: Whisper (speech-to-text)</span>
+      <span class="chip">No LLM · no generated questions</span>
+      <span class="chip">Audio is never stored</span>
+    </div>
+  </header>
+
+  <div class="diagram">
+    <svg viewBox="0 0 1200 570" role="img" aria-label="Architecture: admin and expert browsers talk to the Next.js app on Vercel, which reads and writes Supabase and sends audio to Groq Whisper for transcription. GitHub deploys to Vercel.">
+      <defs>
+        <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/>
+        </marker>
+      </defs>
+
+      <!-- actors -->
+      <rect x="30" y="95" width="220" height="100" rx="12" fill="var(--actor)" stroke="var(--line)" stroke-width="1.5"/>
+      <text class="h" x="46" y="125">Admin</text>
+      <text class="sub" x="46" y="147">Browser · signs in with</text>
+      <text class="sub" x="46" y="166">email + password</text>
+
+      <rect x="30" y="225" width="220" height="100" rx="12" fill="var(--actor)" stroke="var(--line)" stroke-width="1.5"/>
+      <text class="h" x="46" y="255">Expert (SME)</text>
+      <text class="sub" x="46" y="277">Browser · opens personal link,</text>
+      <text class="sub" x="46" y="296">no account · records mic audio</text>
+
+      <!-- github -->
+      <rect x="30" y="450" width="220" height="80" rx="12" fill="var(--git)" stroke="var(--line)" stroke-width="1.5"/>
+      <text class="h" x="46" y="481">GitHub</text>
+      <text class="sub" x="46" y="503">Source code · branch “main”</text>
+
+      <!-- vercel container -->
+      <rect x="350" y="40" width="470" height="500" rx="16" fill="var(--vercel)" stroke="var(--line)" stroke-width="1.5"/>
+      <text class="h" x="372" y="72">Vercel — hosting + server code</text>
+      <text class="sub" x="372" y="92">One Next.js / React / TypeScript app</text>
+
+      <rect class="box" x="372" y="110" width="426" height="62" rx="10"/>
+      <text class="t" x="388" y="136">Admin pages</text>
+      <text class="sub" x="388" y="156">create survey · links · results · export</text>
+
+      <rect class="box" x="372" y="184" width="426" height="62" rx="10"/>
+      <text class="t" x="388" y="210">Survey pages (for experts)</text>
+      <text class="sub" x="388" y="230">one question at a time · review · submit</text>
+
+      <rect class="box" x="372" y="258" width="426" height="62" rx="10"/>
+      <text class="t" x="388" y="284">/api/transcription</text>
+      <text class="sub" x="388" y="304">receives audio, forwards it, returns text</text>
+
+      <rect class="box" x="372" y="332" width="426" height="62" rx="10"/>
+      <text class="t" x="388" y="358">/api/export</text>
+      <text class="sub" x="388" y="378">CSV / JSON of completed responses</text>
+
+      <rect class="box" x="372" y="406" width="426" height="112" rx="10"/>
+      <text class="t" x="388" y="432">Server-side security (all checks happen here)</text>
+      <text class="sub" x="388" y="454">• Expert link = long random token per person</text>
+      <text class="sub" x="388" y="474">• Admin must be signed in and on the allow-list</text>
+      <text class="sub" x="388" y="494">• Secret keys live only on the server</text>
+
+      <!-- supabase -->
+      <rect x="940" y="60" width="230" height="260" rx="16" fill="var(--supabase)" stroke="var(--supabase-line)" stroke-width="1.8"/>
+      <text class="h" x="960" y="92">Supabase</text>
+      <text class="sub" x="960" y="112">Hosted backend</text>
+      <rect class="box" x="958" y="128" width="194" height="98" rx="10"/>
+      <text class="t" x="972" y="152">PostgreSQL database</text>
+      <text class="sub" x="972" y="173">surveys · questions</text>
+      <text class="sub" x="972" y="192">participants · responses</text>
+      <text class="sub" x="972" y="211">answers (text only)</text>
+      <rect class="box" x="958" y="238" width="194" height="66" rx="10"/>
+      <text class="t" x="972" y="262">Auth</text>
+      <text class="sub" x="972" y="282">admin sign-in only</text>
+
+      <!-- groq -->
+      <rect x="940" y="380" width="230" height="150" rx="16" fill="var(--groq)" stroke="var(--groq-line)" stroke-width="1.8"/>
+      <text class="h" x="960" y="412">Groq</text>
+      <text class="sub" x="960" y="432">External AI service</text>
+      <rect class="box" x="958" y="446" width="194" height="66" rx="10"/>
+      <text class="t" x="972" y="470">Whisper large-v3-turbo</text>
+      <text class="sub" x="972" y="490">speech → text</text>
+
+      <!-- arrows -->
+      <path class="arrow" d="M250 145 H372" marker-end="url(#ah)"/>
+      <path class="arrow" d="M250 275 L372 222" marker-end="url(#ah)"/>
+      <path class="arrow dash" d="M250 490 H350" marker-end="url(#ah)"/>
+      <path class="arrow" d="M820 190 H940" marker-start="url(#ah)" marker-end="url(#ah)"/>
+      <path class="arrow" d="M820 276 L940 424" marker-end="url(#ah)"/>
+      <path class="arrow dash" d="M940 490 L820 304" marker-end="url(#ah)"/>
+
+      <!-- number badges -->
+      <g><circle class="num" cx="311" cy="135" r="12"/><text class="numt" x="311" y="140" text-anchor="middle">1</text></g>
+      <g><circle class="num" cx="311" cy="262" r="12"/><text class="numt" x="311" y="267" text-anchor="middle">2</text></g>
+      <g><circle class="num" cx="880" cy="176" r="12"/><text class="numt" x="880" y="181" text-anchor="middle">3</text></g>
+      <g><circle class="num" cx="896" cy="370" r="12"/><text class="numt" x="896" y="375" text-anchor="middle">4</text></g>
+      <g><circle class="num" cx="300" cy="476" r="12"/><text class="numt" x="300" y="481" text-anchor="middle">5</text></g>
+    </svg>
+  </div>
+
+  <ol class="flow">
+    <li><div><b>Admin works in the browser</b>Signs in (Supabase Auth checks the password; the app also checks the email is on the admin list), builds surveys and generates links.</div></li>
+    <li><div><b>Expert opens a personal link</b>The server checks the token and the survey status, then loads the questions. Answers are saved as they go.</div></li>
+    <li><div><b>App ⇄ database, server-side only</b>The browser never talks to the database directly; only the Vercel server code does, with a secret key.</div></li>
+    <li><div><b>Voice → text</b>Recorded audio goes to the app, then to Groq’s Whisper model, and plain text comes back into the answer box. The expert edits it. Audio is discarded, only the final text is saved.</div></li>
+    <li><div><b>Automatic deployment</b>Every merge to <code>main</code> on GitHub is built and published by Vercel.</div></li>
+  </ol>
+  <div class="limits" aria-label="Limits of the free voice service">
+    <h2>Limits of the free voice service (Groq free tier)</h2>
+    <div class="grid">
+      <div><b>Groq’s free-plan caps</b>
+        <ul>
+          <li>≈ 20 transcriptions per minute, shared by <u>all</u> experts</li>
+          <li>≈ 2,000 transcriptions and ≈ 8 hours of audio per day</li>
+          <li>≈ 2 hours of audio per hour</li>
+        </ul>
+      </div>
+      <div><b>What that means in practice</b>
+        <ul>
+          <li>Fine for 10–100 experts answering over several days (≈ 45 s per answer)</li>
+          <li>If many record at the same moment (e.g. a live session), some see “We couldn’t transcribe”; they retry after a minute or simply type</li>
+          <li>Typing is never limited</li>
+        </ul>
+      </div>
+      <div><b>Limits built into the app</b>
+        <ul>
+          <li>Max 5 minutes per recording</li>
+          <li>Max 20 recordings per minute per expert link</li>
+          <li>Need more capacity? Move Groq to a paid plan, or host Whisper ourselves; only settings change, not the app</li>
+        </ul>
+      </div>
+    </div>
+    <small>Figures are Groq’s published free-plan limits at the time of writing and may change: check console.groq.com → Settings → Limits.</small>
+  </div>
+  <footer>Tech: Next.js · React · TypeScript · Tailwind · Supabase (PostgreSQL + Auth) · Vercel · Groq Whisper · tested with Vitest + Playwright</footer>
+</section>
+
+<!-- ============ SLIDE 2: HOW TO USE ============ -->
+<section class="slide" id="howto" aria-labelledby="t2">
+  <header>
+    <div class="eyebrow">Discovery Voice Survey · 2 of 2</div>
+    <h1 id="t2">How to run a survey</h1>
+    <p>Admin site: <code>https://discovery-voice-survey.vercel.app/admin</code></p>
+  </header>
+
+  <div class="cols">
+    <div class="panel">
+      <h2>You (admin) <span>· about 5 minutes</span></h2>
+      <ol class="steps">
+        <li><div><b>Sign in</b><small>Open the admin site and use your email and password. New admins are added by the project owner.</small></div></li>
+        <li><div><b>Create the survey</b><small>Click <b>Create survey</b>. Add a title, a short description (shown to experts on the welcome screen) and your questions. Use ↑ ↓ to reorder and untick <b>Required</b> for optional ones.</small></div></li>
+        <li><div><b>Save, then Activate</b><small>Links only work while the survey is <b>active</b>.</small></div></li>
+        <li><div><b>Generate links</b><small>Under <b>Participants</b> choose how many and click <b>Generate</b>. You get one link per expert (SME-001, SME-002…).</small></div></li>
+        <li><div><b>Send each expert their own link</b><small>Click <b>Copy link</b> and send it by email or chat. One link per person: it identifies them, so don’t forward one link to several people.</small></div></li>
+        <li><div><b>Follow progress and export</b><small>The survey page shows how many are not started / in progress / completed. Click <b>Open</b> to read a response; export <b>CSV</b> or <b>JSON</b> (completed responses only).</small></div></li>
+      </ol>
+    </div>
+
+    <div class="panel">
+      <h2>The expert <span>· about 8–10 minutes</span></h2>
+      <ol class="steps">
+        <li><div><b>Open the link and click Start</b><small>No account or login needed.</small></div></li>
+        <li><div><b>Answer each question</b><small>Type, or click <b>🎙 Record Answer</b>, speak, then <b>Stop Recording</b>. The text appears in the box: check it and fix any mistakes. <b>Record Again</b> replaces it. Allow the microphone when the browser asks; typing always works.</small></div></li>
+        <li><div><b>Next / Back</b><small>Answers are saved as they go and survive a page refresh. Required questions can’t be skipped.</small></div></li>
+        <li><div><b>Review and submit</b><small>Check all answers, edit any of them, then <b>Submit Interview</b>. After submitting, the link is read-only.</small></div></li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="tips" aria-label="Good to know">
+    <div class="tip"><b>Questions lock after the first answer</b>To change wording later, reset those experts’ answers first, or create a new survey.</div>
+    <div class="tip"><b>Deactivate stops all links</b>Experts then see “This survey is not open”. Activate again to reopen.</div>
+    <div class="tip"><b>Reset or delete an expert</b>Open their response: <b>Reset answers</b> lets them start over on the same link; <b>Delete</b> removes them completely.</div>
+    <div class="tip"><b>Voice and privacy</b>Audio is not stored. It is sent to Groq only to be turned into text; recordings are up to 5 minutes. Only the final text is kept.</div>
+    <div class="tip"><b>Changing an admin password</b>Supabase → Authentication → Users: delete the admin and add them again with the new password (same email). No survey data is affected. Ask the project owner.</div>
+  </div>
+  <footer>Trouble with voice? Typing is always available as a fallback. Admins can check the transcription service at <code>/api/transcription/health</code> while signed in.</footer>
+</section>
+
+</body>
+</html>
