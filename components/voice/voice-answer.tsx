@@ -42,9 +42,10 @@ export function VoiceAnswer({ token, hasAnswer, onTranscript }: { token: string;
   const working = phase === "transcribing";
 
   return (
-    <div className="flex flex-col items-center gap-4 text-center">
-      <Orb size={116} state={recording ? "recording" : working ? "working" : "idle"} stream={recorder.stream} />
+    <div className="pv-voice">
+      <Orb size={104} state={recording ? "recording" : working ? "working" : "idle"} stream={recorder.stream} />
 
+      <div className="flex min-w-0 flex-col items-center gap-3 sm:items-start">
       {recording ? (
         <>
           <span role="status" aria-live="polite" className="text-[15px] font-semibold text-[#c0384a]">
@@ -75,6 +76,7 @@ export function VoiceAnswer({ token, hasAnswer, onTranscript }: { token: string;
       {phase === "silent" && (
         <p role="alert" className="pv-error">We didn&apos;t hear anything. Please check your microphone and try again, or type your answer.</p>
       )}
+      </div>
     </div>
   );
 }
